@@ -3,9 +3,9 @@
 https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/
 
 
+
 ### 3D Gaussian
 3D Gaussian은 3차원 공간에서 반 투명한 공처럼 표현됨!
-[R1280x0.png](attachment:252f419b-e024-4f17-96a1-865ccbe5d4ef:R1280x0.png)
 
 
 ### 3D Gaussian Splatting
@@ -25,7 +25,6 @@ Opacity : 투명도/밀도
 
 
 ### Process
-![R1280x0-2.png](attachment:498f0390-f607-4d7d-9d19-b3b3d5258c94:R1280x0-2.png)
 
 1. 렌더링 하고자 하는 공간의 사진을 여러 각도에서 촬영 후 SfM으로 공간의 특징적인 포인트를 추출하고 그 위치를 계산함
 2. 해당 위치에 임의의 크기, 방향, 색상, 투명도로 초기화된 3D Gaussian 들을 뿌리고 2D 이미지 공간으로 Projection(투영)
