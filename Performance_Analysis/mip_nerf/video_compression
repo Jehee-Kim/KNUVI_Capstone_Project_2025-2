@@ -23,3 +23,37 @@ https://vcgit.hhi.fraunhofer.de/jvet/HM
 
 영상 8배 다운스케일링한 뒤
 QP 32, 37로 진행
+
+영상별 세부정보
+sourcewidth/sourceHeight
+
+ffprobe "/mnt/c/Users/PC012/Desktop/out_sorted_stump.mp4"
+
+stump:622x412
+bonsai:778x518
+kitchen:778x518
+counter:778x518
+room:778x518
+garden:648x420
+bicycle:618x410
+flowers:628x414
+treehill:632x414
+
+FramesToBeEncoded
+
+ffprobe -v error -count_frames -select_streams v:0 \
+-show_entries stream=nb_read_frames \
+-of default=nokey=1:noprint_wrappers=1 \
+"/mnt/c/Users/PC012/Desktop/out_sorted_stump.mp4"
+stump:126
+bonsai:292
+kitchen:279
+counter:240
+room:311
+garden:185
+bicycle:195
+flowers:173
+treehill:141
+
+압축 실행 코드:
+/root/HM/bin/TAppEncoderStatic -c /root/HM/cfg/encoder_intra_main.cfg -i /mnt/c/Users/PC012/Desktop/dataset/out_stump.yuv -b /mnt/c/Users/PC012/Desktop/dataset/out_stump.hevc
