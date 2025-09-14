@@ -1,0 +1,25 @@
+mip-nerf 데이터셋 9개 모두에 대해 이미지 파일 비디오 변환 및 압축 진행
+
+bicycle, flowers, treehill에 대해서만 비디오 변환 전 프레임 정렬 실행
+카메라 파라미터 고려한 방법으로 시도했으나, 
+잘 되지 않아 해당 데이터셋의 순서를 고려해 단순히 순서를 바꾸는 알고리즘 만들어 사용
+
+mp4 비디오 만드는 명령어 예시:
+ffmpeg -framerate 30 -i "C:\Users\PC008\Desktop\mip-nerf360\flowers\video_frames\frame_%06d.JPG" -c:v libx264 -pix_fmt yuv420p -crf 18 "C:\Users\PC008\Desktop\mip-nerf360\flowers\out_sorted.mp4"
+
+yuv 비디오 만드는 명령어 예시:
+ffmpeg -framerate 30 -i "C:\Users\PC008\Desktop\mip-nerf360\bicycle\video_frames\frame_%06d.JPG" -f rawvideo -pix_fmt yuv444p "C:\Users\PC008\Desktop\mip-nerf360\bicycle\out.yuv"
+
+mpt to yuv:
+ffmpeg -i "/mnt/c/Users/PC012/Desktop/out_sorted_stump.mp4" -r 30 -pix_fmt yuv444p -f rawvideo "/mnt/c/Users/PC012/Desktop/out_stump.yuv"
+
+(참고) read_write_model.py: mip-nerf/sparse/0/안의 bin파일들을 txt로 변환하는 코드,
+사용방법:
+python C:\Users\PC008\Desktop\mip-nerf360\read_write_model.py --input_model C:\Users\PC008\Desktop\mip-nerf360\flowers\sparse\0 --input_format .bin --output_model C:\Users\PC008\Desktop\mip-nerf360\flowers\sparse\0 --output_format .txt
+
+HECV 압축 진행
+https://vcgit.hhi.fraunhofer.de/jvet/HM
+아래 링크에서 코드 받아 환경에 맞게 build 후 실행
+
+영상 8배 다운스케일링한 뒤
+QP 32, 37로 진행
