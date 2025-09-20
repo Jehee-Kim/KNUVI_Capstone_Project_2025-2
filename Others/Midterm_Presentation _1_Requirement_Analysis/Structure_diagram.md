@@ -1,1 +1,1 @@
-![Structure diagram](../images/Capstone.drawio.png)
+![Structure diagram](../../images/Capstone.drawio.png)
