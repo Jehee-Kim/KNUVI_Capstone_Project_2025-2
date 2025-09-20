@@ -22,7 +22,7 @@ https://vcgit.hhi.fraunhofer.de/jvet/HM
 아래 링크에서 코드 받아 환경에 맞게 build 후 실행
 
 영상 8배 다운스케일링한 뒤
-QP 32, 37로 진행
+QP 27, 32, 37, 42로 진행
 
 영상별 세부정보
 sourcewidth/sourceHeight
