@@ -41,3 +41,5 @@ vggt는 무조건 images라는 폴더 안에 사진이 있다고 생각하기 �
 - > wsl 홈에 복사해놨던 폴더 안에 결과가 생겼을 텐데 그거 다시 windows로 복사
 
 ply 파일 cloudcompare로 열어서 보시면 됩니다
+
++ vggt 코드 열고 heads/dpt_head 에서 frames_chunk_size = 8을 1로 바꿔야 실습실 환경에서도 빠르게 돌아감
