@@ -4,7 +4,7 @@
 - 30도 임계값에서의 Area Under Curve
     - RRA : Relative Rotation Accuracy
     - RTA : Relative Translation Accuracy
-    - AUC : RRA, RTA 중 작은 값을 기준으로 하는 면적?? 이해 못했음... 아마 카메라포즈 관련 메트릭인듯
+    - AUC : RRA, RTA 중 작은 값을 기준으로 하는 면적
 
 ## Chamfer Distance
 : 두 점 집합 사이의 유사성이나 차이를 측정하는 메트릭.
