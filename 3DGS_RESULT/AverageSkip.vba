@@ -6,10 +6,14 @@ Function AverageSkip(rng As Range, stepSize As Integer) As Double
 
     i = 1
     For Each cell In rng
-        ' stepSize마다 하나씩만 포함
+        ' stepSize마다 하나씩 포함
         If (i - 1) Mod stepSize = 0 Then
-            total = total + cell.Value
-            count = count + 1
+            ' 값이 비어있지 않은 경우만 계산
+            If IsNumeric(cell.Value) Then
+                total = total + cell.Value
+                count = count + 1
+            End If
+
         End If
         i = i + 1
     Next cell
@@ -20,3 +24,4 @@ Function AverageSkip(rng As Range, stepSize As Integer) As Double
         AverageSkip = 0
     End If
 End Function
+
