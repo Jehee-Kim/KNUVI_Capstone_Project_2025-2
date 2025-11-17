@@ -1,42 +1,17 @@
 
 # KNUVI Capstone Project 2025-2
-**경북대학교 (KNU) - 시각 지능 (KNUVI) 캡스톤 프로젝트**
+**경북대학교 (KNU) - 2025년도 2학기 종합설계프로젝트 1**
 
 ## 📋 프로젝트 개요
 
 본 프로젝트는 **3D Gaussian Splatting (3DGS)** 및 **Visual Geometry Grounded Transformer (VGGT)** 기술을 활용한 3D 재구성 및 성능 분석 연구입니다. Structure-from-Motion (SfM) 파이프라인과 최신 딥러닝 기반 3D 재구성 기술을 비교·분석하고, 성능 개선 방법론을 제시합니다.
 
 ### 주요 목표
-- 3DGS와 VGGT를 활용한 고품질 3D 재구성
+- 2D 이미지/비디오 데이터셋의 압축이 3DGS와 VGGT의 3D 재구성 성능에 미치는 영향 분석
 - COLMAP 기반 SfM 파이프라인 자동화 및 최적화
-- 정량적 평가 지표(PSNR, SSIM, LPIPS, Chamfer Distance) 기반 성능 분석
-- 코덱 압축 및 전처리 기법을 통한 성능 향상 연구
+- 정량적 평가 지표(PSNR, SSIM, LPIPS, Chamfer Distance, AUC) 기반 성능 분석
+- 전처리 기법을 통한 압축 아티팩트 완화 및 3DGS와 VGGT 성능 향상 실험
 
----
-
-## 🎯 주요 기능
-
-### 1. **3D Gaussian Splatting (3DGS)**
-- 실시간 렌더링 가능한 3D 장면 재구성
-- Anisotropic Gaussian 기반 최적화
-- 고품질 시각적 재구성 결과 생성
-
-### 2. **Visual Geometry Grounded Transformer (VGGT)**
-- Feed-forward 방식의 빠른 3D 재구성
-- 단일 이미지 또는 다중 이미지 입력 지원
-- 카메라 파라미터, 깊이 맵, 포인트 클라우드 직접 추론
-
-### 3. **COLMAP 자동화**
-- Structure-from-Motion (SfM) 파이프라인 자동화
-- Feature 추출 및 매칭 안정화
-- Outlier 제거 및 최적화 기능
-
-### 4. **성능 평가**
-- **정량적 지표**: PSNR, SSIM, LPIPS, Chamfer Distance
-- 시각화 도구를 통한 결과 분석
-- 다양한 데이터셋에 대한 벤치마킹
-
----
 
 ## 🗂 프로젝트 구조
 
@@ -72,7 +47,7 @@ KNUVI_Capstone_Project_2025-2/
 
 ---
 
-## 🛠 설치 및 환경 설정
+## 🛠 프로젝트 환경
 
 ### 요구사항
 - Python 3.8+
@@ -81,7 +56,7 @@ KNUVI_Capstone_Project_2025-2/
 - COLMAP 3.8+
 
 
-## 🚀 사용 방법
+## 🚀 코드 사용 방법
 
 ### 1. COLMAP 자동화 실행
 ```
@@ -114,12 +89,13 @@ python Performance_Analysis/visulization_for_chamfer_distance.py --input <입력
 
 본 프로젝트에서 사용하는 주요 평가 지표:
 
-| 지표 | 설명 | 용도 |
-|------|------|------|
-| **PSNR** | Peak Signal-to-Noise Ratio | 이미지 품질 평가 |
-| **SSIM** | Structural Similarity Index | 구조적 유사도 측정 |
-| **LPIPS** | Learned Perceptual Image Patch Similarity | 지각적 유사도 평가 |
-| **Chamfer Distance** | Point Cloud Distance | 3D 기하학적 정확도 |
+| 지표 | 설명 | 용도 | 범위 |
+|------|------|------|------|
+| **PSNR** | Peak Signal-to-Noise Ratio | 이미지 품질 평가 (픽셀 단위 오차) | 높을수록 좋음 (dB) |
+| **SSIM** | Structural Similarity Index | 구조적 유사도 측정 | 0~1 (1에 가까울수록 좋음) |
+| **LPIPS** | Learned Perceptual Image Patch Similarity | 지각적 유사도 평가 (인간 시각 기반) | 0~1 (낮을수록 좋음) |
+| **Chamfer Distance** | Point Cloud Distance | 3D 기하학적 정확도 (포인트 클라우드 간 거리) | 낮을수록 좋음 |
+| **AUC** | Area Under the Curve | 정확도-임계값 트레이드오프 평가 | 0~1 (1에 가까울수록 좋음) |
 
 자세한 설명은 [`Performance_Analysis/evaluation_metrics.md`](Performance_Analysis/evaluation_metrics.md)를 참조하세요.
 
@@ -128,17 +104,14 @@ python Performance_Analysis/visulization_for_chamfer_distance.py --input <입력
 ## 📈 실험 결과
 
 ### 3DGS 결과
-- 실시간 렌더링 성능 달성
-- PSNR: XX.XX dB
-- SSIM: 0.XXX
+- (추가 예정)
 - 상세 결과: [`3DGS_RESULT/`](3DGS_RESULT/)
 
 ### VGGT 결과
-- Feed-forward 추론 시간: < 1초
-- 다중 이미지 재구성 성능 검증
+- (추가 예정)
 - 상세 결과: [`VGGT_RESULT/`](VGGT_RESULT/)
 
-### 성능 비교
+### 기타 내용
 발표 자료 및 분석 결과는 [`Others/`](Others/) 폴더를 참조하세요.
 
 ---
@@ -174,7 +147,7 @@ python Performance_Analysis/visulization_for_chamfer_distance.py --input <입력
 
 ## 📄 라이선스
 
-본 프로젝트는 교육 목적의 캡스톤 프로젝트입니다. 
+본 프로젝트는 교육 목적의 캡스톤 프로젝트입니다. 추후 라이선스 추가 예정입니다.
 
 ---
 
