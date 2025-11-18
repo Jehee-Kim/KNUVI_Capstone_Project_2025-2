@@ -20,7 +20,7 @@
 # 실행 방법
 
 ```bash
-bash run_all.sh
+./run_all.sh
 
 ```
 
@@ -108,7 +108,7 @@ ConformanceWindowMode = 1
 
 특히 `ConformanceWindowMode=1`을 설정하지 않으면 chroma alignment 오류가 발생합니다.
 
-##스크립트 구조 요약
+# 스크립트 구조 요약
 
 encode.sh
 ├─ 사용자 입력
@@ -123,7 +123,7 @@ encode.sh
 │   └─ YUV → PNG 변환
 └─ 사용자 선택에 따라 실행
 
-##주의 사항
+# 주의 사항
 
 HM 인코더(TAppEncoder)는 cfg 설정에 따라 동작하므로, 반드시 Profile, Chroma Format, ConformanceWindowMode를 확인하세요.
 
