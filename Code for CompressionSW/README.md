@@ -1,32 +1,98 @@
-# Image/Video Integrated Compression Pipeline Software
-======================================================
+# Image/Video Integrated Compression Pipeline
 
-## 개요
-----
-본 소프트웨어는 이미지 및 비디오 파일을 대상으로 다양한 코덱과 품질(QP) 설정을 적용해 자동으로 압축을 수행하는 파이프라인 소프트웨어입니다. 단일 CLI 명령으로 입력 파일을 분석하고, 선택한 코덱에 필요한 전처리 및 인코딩 단계를 연속적으로 실행하여 목적지 경로에 결과를 생성합니다.
+## Overview
 
-## 핵심 기능
---------
-- `HEVC`, `H.264`, `AV1` 등 확장 가능한 코덱 선택 구조
-- QP 기반 품질 제어와 사전 정의된 프리셋(예: `visual`, `balanced`, `bitrate`)
-- 이미지·비디오 구분 자동 감지 및 일관된 파이프라인 처리
-- 로그/메트릭 수집과 재현 가능한 설정 스냅샷(JSON) 저장
-- 모듈형 스테이지(전처리 → 인코딩 → 사후검증) 구성으로 사용자 정의 용이
+This project provides a command-line interface (CLI) pipeline for automating image and video compression. It allows users to easily encode various media files using different codecs and quality settings through a single, unified command structure. The pipeline is designed to be modular, calling specialized scripts for each codec.
 
-## 사용 예시
---------
+## Features
+
+- **Unified Interface**: A single `main.py` script to handle all operations.
+- **Multiple Codecs**: Supports HEVC (for YUV raw video) and JPEG (for standard images).
+- **Flexible Input**: Can process a single file or all supported files within a directory.
+- **Quality Control**: Easily set the desired quality level using the `--QP` argument.
+- **Configurable Paths**: The path to the HEVC encoder can be specified as a command-line argument, avoiding hardcoded paths.
+- **Robust Logging**: Provides clear, real-time feedback on the compression process.
+
+## Prerequisites
+
+Before running the pipeline, please ensure the following requirements are met:
+
+1.  **Python 3**: The main script and JPEG encoder are written in Python 3.
+2.  **Pillow Library**: The JPEG script requires the Pillow library. Install it via pip:
+    ```bash
+    pip install Pillow
+    ```
+3.  **Script Permissions**: The HEVC encoder script needs to be executable. Grant permissions using `chmod`:
+    ```bash
+    chmod +x "Code for CompressionSW/encode_hevc_single.sh"
+    ```
+4.  **HEVC Encoder**: You must have an HEVC encoder executable (e.g., the HM reference software's `TAppEncoder`). You will need to provide the path to this executable.
+
+## Usage
+
+The main script `main.py` is the entry point for all operations.
+
+### General Command
+
+```bash
+python3 Code/for/CompressionSW/main.py --codec <CODEC> --QP <VALUE> --input <PATH> --output <PATH> [OPTIONS]
 ```
-main.py --codec HEVC --QP 27 --input <path> --output <path>
+
+### Examples
+
+**1. HEVC Encoding**
+
+Encodes a raw YUV video file. The `--width` and `--height` arguments are **required**.
+
+```bash
+# Encode a 1920x1080 YUV file with a QP of 27
+python3 Code/for/CompressionSW/main.py \
+    --codec HEVC \
+    --QP 27 \
+    --input /path/to/video.yuv \
+    --output ./hevc_results \
+    --width 1920 \
+    --height 1080 \
+    --encoder_path /path/to/your/TAppEncoder
 ```
 
-- `--codec`: 사용할 코덱 식별자. 초기 버전은 `HEVC` 집중 지원.
-- `--QP`: Quantization Parameter. 낮을수록 고화질/고비트레이트, 높을수록 저화질/저비트레이트.
-- `--input`: 단일 파일 또는 디렉터리 경로. 디렉터리 입력 시 일괄 처리.
-- `--output`: 결과 파일(또는 디렉터리) 경로. 미지정 시 입력 경로 기반으로 자동 생성.
+**2. JPEG Compression**
 
-## 파이프라인
---------------
-1. **입력 분석**: 포맷, 해상도, 프레임레이트 확인 후 메타데이터 캐시.
-2. **전처리**: 색공간 변환, 리샘플링, 노이즈 리덕션 등 선택적 수행.
-3. **인코딩**: 지정한 코덱/옵션으로 병렬 인코딩. QP 및 코덱별 튜닝 파라미터 적용.
-4. **사후검증**: 출력 무결성 체크, PSNR/SSIM 측정, 로그 저장.
+Compresses a standard image file (e.g., PNG, BMP) into JPEG format.
+
+```bash
+# Compress an image with a quality setting of 90
+python3 Code/for/CompressionSW/main.py \
+    --codec JPEG \
+    --QP 90 \
+    --input /path/to/image.png \
+    --output ./jpeg_results
+```
+
+## Argument Reference
+
+- `--codec`: The codec to use (`HEVC` or `JPEG`).
+- `--QP`: The quality/quantization parameter. **Note the different meanings per codec (see below).**
+- `--input`: Path to the source file or directory.
+- `--output`: Path to the destination directory for results.
+- `--width`: Frame width for the input video. **Required for HEVC.**
+- `--height`: Frame height for the input video. **Required for HEVC.**
+- `--encoder_path`: (Optional) Path to the HEVC encoder executable. If not provided, the script uses a default path.
+
+## Important Notes
+
+- **Meaning of `--QP`**:
+  - For **HEVC**, `--QP` is the Quantization Parameter. A **lower** value means **higher** quality.
+  - For **JPEG**, `--QP` is the Quality Score. A **higher** value means **higher** quality (1-95 recommended).
+
+- **HEVC Input Format**: The HEVC script is designed **only for raw YUV video files**. It will not work with standard formats like MP4 or MOV.
+
+- **HEVC Script Configuration**: The `encode_hevc_single.sh` script still contains some hardcoded values that you may need to be aware of:
+  - `CFG_PATH`: The path to the encoder configuration file (`.cfg`).
+  - `FRAMES`: The number of frames to encode is hardcoded to `300`.
+
+## Scripts Overview
+
+- `main.py`: The main controller. It parses user arguments and calls the appropriate script.
+- `encode_hevc_single.sh`: A shell script that takes arguments to encode a single YUV file using an HEVC encoder.
+- `encode_jpeg_single.py`: A Python script that takes arguments to compress a single image file into JPEG format using the Pillow library.
