@@ -110,6 +110,7 @@ ConformanceWindowMode = 1
 
 # 스크립트 구조 요약
 
+```
 encode.sh
 ├─ 사용자 입력
 │  ├─ base_root (데이터셋 경로)
@@ -122,6 +123,7 @@ encode.sh
 │   ├─ HEVC 인코딩 (HM 18.0, cfg 적용)
 │   └─ YUV → PNG 변환
 └─ 사용자 선택에 따라 실행
+```
 
 # 주의 사항
 
