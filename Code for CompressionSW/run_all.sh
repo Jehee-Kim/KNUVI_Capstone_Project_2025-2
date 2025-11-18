@@ -59,20 +59,21 @@ hevc_encode() {
 	mkdir -p "${base_root}/bitstream"
 	mkdir -p "${base_root}/coding_log"
 
-
-  echo "===== JPG 파일 이름 일괄 변경 시작 ====="
-     for scene in "${scenes[@]}"; do
-         frames_dir="${base_root}/frames/${scene}"
-         n=1
-         for file in "$frames_dir"/_DSC*.JPG "$frames_dir"/_DSC*.jpg "$frames_dir"/_DSC*.JPEG "$frames_dir"/_DSC*.jpeg; do
-            [ -f "$file" ] || continue
-            ext="${file##*.}"
-            new_name=$(printf "img_%06d.%s" "$n" "$ext")
-            mv "$file" "$frames_dir/$new_name"
-            ((n++))
-          done
-        echo "===== [$scene] 완료: $((n-1)) 개 파일 이름 변경 ====="
-    done
+	echo "===== JPG 파일 이름 일괄 변경 시작 ====="
+     	for scene in "${scenes[@]}"; do
+         	frames_dir="${base_root}/frames/${scene}"
+         	n=1
+    	 	for file in "$frames_dir"/_DSC*.JPG "$frames_dir"/_DSC*.jpg "$frames_dir"/_DSC*.JPEG "$frames_dir"/_DSC*.jpeg \
+                "$frames_dir"/DSC*.JPG "$frames_dir"/DSC*.jpg "$frames_dir"/DSC*.JPEG "$frames_dir"/DSC*.jpeg \
+                "$frames_dir"/DSCF*.JPG "$frames_dir"/DSCF*.jpg "$frames_dir"/DSCF*.JPEG "$frames_dir"/DSCF*.jpeg; do
+         	[ -f "$file" ] || continue
+         	ext="${file##*.}"
+         	new_name=$(printf "img_%06d.%s" "$n" "$ext")
+         	mv "$file" "$frames_dir/$new_name"
+         	((n++))
+    	done
+    	echo "===== [$scene] 완료: $((n-1)) 개 파일 이름 변경 ====="
+	done
 
 	echo "===== JPG → YUV 변환 시작 ====="
 
