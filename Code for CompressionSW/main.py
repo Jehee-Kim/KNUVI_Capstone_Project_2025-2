@@ -39,7 +39,7 @@ def get_script_path(codec):
     elif codec.upper() == "JPEG":
         return "./encode_jpeg_single.py"
     elif codec.upper() == "AVC":
-        return "./encode_avc.sh"
+        return "./encode_avc_single.sh"
     else:
         return None
 
@@ -111,6 +111,8 @@ def main():
         base_filename = os.path.basename(file_path)
         if args.codec.upper() == 'JPEG':
             base_filename = f"{os.path.splitext(base_filename)[0]}.jpg"
+        elif args.codec.upper() == 'AVC':
+            base_filename = f"{os.path.splitext(base_filename)[0]}.mp4"
         output_file_path = os.path.join(args.output, base_filename)
 
         command = []
@@ -128,8 +130,11 @@ def main():
                 "--input", file_path,
                 "--output", output_file_path
             ]
+            if args.codec.upper() == "HEVC" or args.codec.upper() == "AVC":
+                if args.width and args.height:
+                    command.extend(["--width", str(args.width), "--height", str(args.height)])
+            
             if args.codec.upper() == "HEVC":
-                command.extend(["--width", str(args.width), "--height", str(args.height)])
                 if args.encoder_path:
                     command.extend(["--encoder_path", args.encoder_path])
 
