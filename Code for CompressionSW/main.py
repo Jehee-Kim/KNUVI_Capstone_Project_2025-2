@@ -38,6 +38,8 @@ def get_script_path(codec):
         return "./encode_hevc_single.sh"
     elif codec.upper() == "JPEG":
         return "./encode_jpeg_single.py"
+    elif codec.upper() == "AVC":
+        return "./encode_avc.sh"
     else:
         return None
 
