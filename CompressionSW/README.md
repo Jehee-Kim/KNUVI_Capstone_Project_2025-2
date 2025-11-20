@@ -13,6 +13,9 @@ This project provides a command-line interface (CLI) pipeline for automating ima
   - **Image**: `.jpg`, `.jpeg`, `.png`, `.bmp`, `.tiff`
 - **Quality Control**: Easily set the desired quality level using the `--QP` argument.
 - **Speed Control**: Adjust encoding speed using the `--preset` argument (e.g., `ultrafast`, `medium`, `veryslow`).
+- **Encoding Modes**:
+  - **Random Access (Default)**: High compression efficiency using I/P/B frames (GOP=48).
+  - **All-Intra**: Every frame is a keyframe (I-frame). Fast seeking/editing, but larger file size. Use `--all_intra`.
 - **Robust Logging**: Provides clear, real-time feedback on the compression process.
 
 ## Prerequisites
@@ -43,7 +46,7 @@ python3 main.py --codec <CODEC> --QP <VALUE> --input <PATH> --output <PATH> [OPT
 
 ### Examples
 
-**1. HEVC Encoding**
+**1. HEVC Encoding (Default - Random Access)**
 
 Fast encoding using FFmpeg. Produces `.mp4` files.
 
@@ -57,7 +60,21 @@ python3 main.py \
     --preset fast
 ```
 
-**2. AVC (H.264) Encoding**
+**2. HEVC Encoding (All-Intra)**
+
+Encodes every frame as a keyframe. Useful for editing or specific research needs.
+
+```bash
+# Encode with All-Intra mode
+python3 main.py \
+    --codec HEVC \
+    --QP 27 \
+    --input /path/to/video.mp4 \
+    --output ./hevc_ai_results \
+    --all_intra
+```
+
+**3. AVC (H.264) Encoding**
 
 Encodes a video file using FFmpeg.
 
@@ -71,7 +88,7 @@ python3 main.py \
     --preset ultrafast
 ```
 
-**3. JPEG Compression**
+**4. JPEG Compression**
 
 Compresses a standard image file (e.g., PNG, BMP) into JPEG format.
 
@@ -93,6 +110,7 @@ python3 main.py \
 - `--input`: Path to the source file or directory.
 - `--output`: Path to the destination directory for results.
 - `--preset`: Encoding speed preset (default: `medium`). Choices: `ultrafast`, `superfast`, `veryfast`, `faster`, `fast`, `medium`, `slow`, `slower`, `veryslow`.
+- `--all_intra`: (Flag) Use All-Intra encoding mode (every frame is a keyframe).
 - `--width`: Frame width. **Required for raw YUV inputs.**
 - `--height`: Frame height. **Required for raw YUV inputs.**
 

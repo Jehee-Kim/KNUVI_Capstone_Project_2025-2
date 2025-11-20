@@ -7,6 +7,7 @@ OUTPUT_FILE=""
 WIDTH=""
 HEIGHT=""
 PRESET="medium"
+ALL_INTRA=false
 
 # Parse named arguments
 while [[ "$#" -gt 0 ]]; do
@@ -17,6 +18,7 @@ while [[ "$#" -gt 0 ]]; do
         --width) WIDTH="$2"; shift ;;
         --height) HEIGHT="$2"; shift ;;
         --preset) PRESET="$2"; shift ;;
+        --all_intra) ALL_INTRA=true ;;
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
     shift
@@ -56,7 +58,14 @@ CMD="$CMD -vf \"pad=ceil(iw/2)*2:ceil(ih/2)*2\""
 
 # HEVC Encoding settings
 # x265-params: qp=X sets the quantization parameter.
-CMD="$CMD -c:v libx265 -preset $PRESET -x265-params qp=$QP"
+if [ "$ALL_INTRA" = true ]; then
+    # All-Intra: Keyint=1 (Every frame is an I-frame), No B-frames usually implied or explicit
+    CMD="$CMD -c:v libx265 -preset $PRESET -x265-params qp=$QP:keyint=1"
+else
+    # Default (Random Access): Keyint=48, B-frames=2 (Default behavior or explicit)
+    CMD="$CMD -c:v libx265 -preset $PRESET -x265-params qp=$QP:keyint=48:bframes=2"
+fi
+
 CMD="$CMD -pix_fmt yuv420p"
 CMD="$CMD \"$OUTPUT_FILE\""
 

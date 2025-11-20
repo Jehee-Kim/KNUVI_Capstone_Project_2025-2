@@ -56,6 +56,7 @@ def main():
     parser.add_argument("--width", type=int, help="Frame width (required for HEVC codec)")
     parser.add_argument("--height", type=int, help="Frame height (required for HEVC codec)")
     parser.add_argument("--preset", default="medium", choices=["ultrafast", "superfast", "veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow"], help="FFmpeg encoding preset (default: medium)")
+    parser.add_argument("--all_intra", action="store_true", help="Use All-Intra encoding (every frame is a keyframe)")
 
     args = parser.parse_args()
 
@@ -145,6 +146,8 @@ def main():
             ]
             if args.codec.upper() == "HEVC" or args.codec.upper() == "AVC":
                 command.extend(["--preset", args.preset])
+                if args.all_intra:
+                    command.append("--all_intra")
                 if args.width and args.height:
                     command.extend(["--width", str(args.width), "--height", str(args.height)])
             

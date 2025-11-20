@@ -7,6 +7,7 @@ OUTPUT_FILE=""
 WIDTH=""
 HEIGHT=""
 PRESET="medium"
+ALL_INTRA=false
 
 # Parse named arguments
 while [[ "$#" -gt 0 ]]; do
@@ -17,6 +18,7 @@ while [[ "$#" -gt 0 ]]; do
         --width) WIDTH="$2"; shift ;;
         --height) HEIGHT="$2"; shift ;;
         --preset) PRESET="$2"; shift ;;
+        --all_intra) ALL_INTRA=true ;;
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
     shift
@@ -46,9 +48,16 @@ CMD="$CMD -i \"$INPUT_FILE\""
 # Ensure dimensions are even (required for 4:2:0)
 CMD="$CMD -vf \"pad=ceil(iw/2)*2:ceil(ih/2)*2\""
 
-# Encoding settings (matched to previous encode_avc.sh)
-CMD="$CMD -c:v libx264 -profile:v high -preset $PRESET -qp $QP"
-CMD="$CMD -x264-params bframes=2:keyint=48:scenecut=0"
+# Encoding settings
+if [ "$ALL_INTRA" = true ]; then
+    # All-Intra: Keyint=1 (Every frame is an I-frame)
+    CMD="$CMD -c:v libx264 -profile:v high -preset $PRESET -qp $QP"
+    CMD="$CMD -x264-params keyint=1:scenecut=0"
+else
+    # Default (Random Access): Keyint=48, B-frames=2
+    CMD="$CMD -c:v libx264 -profile:v high -preset $PRESET -qp $QP"
+    CMD="$CMD -x264-params bframes=2:keyint=48:scenecut=0"
+fi
 CMD="$CMD -pix_fmt yuv420p"
 CMD="$CMD \"$OUTPUT_FILE\""
 

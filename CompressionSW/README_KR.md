@@ -13,6 +13,9 @@
   - **이미지**: `.jpg`, `.jpeg`, `.png`, `.bmp`, `.tiff`
 - **품질 제어**: `--QP` 인자를 사용하여 원하는 품질 수준을 쉽게 설정할 수 있습니다.
 - **속도 제어**: `--preset` 인자를 사용하여 인코딩 속도를 조절할 수 있습니다 (예: `ultrafast`, `medium`, `veryslow`).
+- **인코딩 모드**:
+  - **Random Access (기본값)**: I/P/B 프레임을 사용하여 압축 효율을 극대화합니다 (GOP=48).
+  - **All-Intra**: 모든 프레임을 키프레임(I-frame)으로 인코딩합니다. 편집 및 탐색이 빠르지만 용량이 큽니다. `--all_intra` 옵션 사용.
 - **상세한 로깅**: 압축 진행 상황에 대한 명확한 실시간 피드백을 제공합니다.
 
 ## 사전 요구사항 (Prerequisites)
@@ -43,7 +46,7 @@ python3 main.py --codec <CODEC> --QP <VALUE> --input <PATH> --output <PATH> [OPT
 
 ### 실행 예시 (Examples)
 
-**1. HEVC 인코딩**
+**1. HEVC 인코딩 (기본값 - Random Access)**
 
 FFmpeg를 사용하여 빠르게 인코딩합니다. 결과물은 `.mp4` 파일로 저장됩니다.
 
@@ -57,7 +60,21 @@ python3 main.py \
     --preset fast
 ```
 
-**2. AVC (H.264) 인코딩**
+**2. HEVC 인코딩 (All-Intra)**
+
+모든 프레임을 키프레임으로 인코딩합니다. 편집이나 특정 연구 목적에 유용합니다.
+
+```bash
+# All-Intra 모드로 인코딩
+python3 main.py \
+    --codec HEVC \
+    --QP 27 \
+    --input /path/to/video.mp4 \
+    --output ./hevc_ai_results \
+    --all_intra
+```
+
+**3. AVC (H.264) 인코딩**
 
 FFmpeg를 사용하여 비디오 파일을 인코딩합니다.
 
@@ -71,7 +88,7 @@ python3 main.py \
     --preset ultrafast
 ```
 
-**3. JPEG 압축**
+**4. JPEG 압축**
 
 일반 이미지 파일(PNG, BMP 등)을 JPEG 포맷으로 압축합니다.
 
@@ -93,6 +110,7 @@ python3 main.py \
 - `--input`: 입력 파일 또는 디렉토리 경로.
 - `--output`: 결과물을 저장할 디렉토리 경로.
 - `--preset`: 인코딩 속도 프리셋 (기본값: `medium`). 선택: `ultrafast`, `superfast`, `veryfast`, `faster`, `fast`, `medium`, `slow`, `slower`, `veryslow`.
+- `--all_intra`: (플래그) All-Intra 인코딩 모드를 사용합니다 (모든 프레임이 키프레임).
 - `--width`: 입력 비디오의 가로 해상도. **YUV 입력 시 필수.**
 - `--height`: 입력 비디오의 세로 해상도. **YUV 입력 시 필수.**
 
