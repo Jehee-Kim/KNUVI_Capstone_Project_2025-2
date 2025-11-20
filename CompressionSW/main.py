@@ -55,20 +55,18 @@ def main():
     parser.add_argument("--output", required=True, help="Path to the output directory")
     parser.add_argument("--width", type=int, help="Frame width (required for HEVC codec)")
     parser.add_argument("--height", type=int, help="Frame height (required for HEVC codec)")
-    parser.add_argument("--encoder_path", help="Path to the HEVC encoder executable (e.g., TAppEncoder)")
+    parser.add_argument("--preset", default="medium", choices=["ultrafast", "superfast", "veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow"], help="FFmpeg encoding preset (default: medium)")
 
     args = parser.parse_args()
 
-    if args.codec.upper() == "HEVC" and (not args.width or not args.height):
-        logging.error("--width and --height arguments are required for the HEVC codec.")
-        return
+
 
     logging.info("--- Compression Pipeline Started ---")
     log_message = f"Codec: {args.codec}, QP/Quality: {args.QP}, Input: {args.input}, Output: {args.output}"
     if args.width and args.height:
         log_message += f", Resolution: {args.width}x{args.height}"
-    if args.encoder_path:
-        log_message += f", Encoder: {args.encoder_path}"
+    if args.width and args.height:
+        log_message += f", Resolution: {args.width}x{args.height}"
     logging.info(log_message)
 
     script_path = get_script_path(args.codec)
@@ -91,10 +89,23 @@ def main():
         files_to_process.append(input_path)
     elif os.path.isdir(input_path):
         logging.info(f"Input is a directory. Processing files inside...")
-        supported_extensions = ['.yuv', '.jpg', '.jpeg', '.png', '.bmp', '.mp4', '.mov', '.avi']
+        
+        # Define supported extensions per codec
+        video_extensions = ['.yuv', '.mp4', '.mov', '.avi', '.mkv']
+        image_extensions = ['.jpg', '.jpeg', '.png', '.bmp', '.tiff']
+        
+        target_extensions = []
+        if args.codec.upper() in ['HEVC', 'AVC']:
+            target_extensions = video_extensions
+        elif args.codec.upper() == 'JPEG':
+            target_extensions = image_extensions
+            
         for filename in sorted(os.listdir(input_path)):
-            if any(filename.lower().endswith(ext) for ext in supported_extensions):
+            if any(filename.lower().endswith(ext) for ext in target_extensions):
                 files_to_process.append(os.path.join(input_path, filename))
+            else:
+                # Optional: Log skipped files if needed, or just silently skip
+                pass
     else:
         logging.error(f"Input path is not a valid file or directory: {input_path}")
         return
@@ -112,6 +123,8 @@ def main():
         if args.codec.upper() == 'JPEG':
             base_filename = f"{os.path.splitext(base_filename)[0]}.jpg"
         elif args.codec.upper() == 'AVC':
+            base_filename = f"{os.path.splitext(base_filename)[0]}.mp4"
+        elif args.codec.upper() == 'HEVC':
             base_filename = f"{os.path.splitext(base_filename)[0]}.mp4"
         output_file_path = os.path.join(args.output, base_filename)
 
@@ -131,12 +144,11 @@ def main():
                 "--output", output_file_path
             ]
             if args.codec.upper() == "HEVC" or args.codec.upper() == "AVC":
+                command.extend(["--preset", args.preset])
                 if args.width and args.height:
                     command.extend(["--width", str(args.width), "--height", str(args.height)])
             
-            if args.codec.upper() == "HEVC":
-                if args.encoder_path:
-                    command.extend(["--encoder_path", args.encoder_path])
+
 
         run_command(command)
 
