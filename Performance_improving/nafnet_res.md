@@ -1,5 +1,13 @@
 70, 50 모두 오히려 denoising 이후에 수치가 더 떨어짐
 jpeg 저압축 구간에서는 nafnet이 오히려 과하게 smoothing하면서 세부정보를 손실했기 때문으로 판단됨
+그러나 10에서도 수치에서 큰 변화는 없었음 psnr은 일부 상승했으나 하락하는 경우도 존재했고 SSIM, LPIPS는 여전히 디노이징 후에 더 안 좋은 수치를 보임
+
+| JPEG 품질 | PSNR (dB)     | SSIM          | LPIPS         | 변화 해석                                                      |
+| ------- | ------------- | ------------- | ------------- | ---------------------------------------------------------- |
+| 70      | 28.74 → 25.82 | 0.929 → 0.854 | 0.037 → 0.185 | Input 대비 Output이 오히려 감소. NAFNet이 과도하게 smoothing하며 세부 정보 손실 |
+| 50      | 26.98 → 25.12 | 0.892 → 0.825 | 0.071 → 0.220 | PSNR/SSIM 감소, LPIPS 증가. 역시 smoothing 과다                    |
+| 10      | 22.86 → 22.86 | 0.716 → 0.689 | 0.318 → 0.402 | 저품질 JPEG에서 NAFNet 효과 미미, 일부 개선 없는 경우도 있음                   |
+
 
 # JPEG70 result
 
@@ -377,3 +385,152 @@ LPIPS Output: 0.2310
 평균 SSIM (Output): 0.8246
 평균 LPIPS (Input):  0.0707
 평균 LPIPS (Output): 0.2198
+
+
+# jpeg 10 result
+
+=== 00000.png ===
+PSNR  Input : 26.8321
+PSNR  Output: 25.0764
+SSIM  Input : 0.8715
+SSIM  Output: 0.7899
+LPIPS Input : 0.0781
+LPIPS Output: 0.2321
+
+=== 00001.png ===
+PSNR  Input : 23.0000
+PSNR  Output: 23.1792
+SSIM  Input : 0.6226
+SSIM  Output: 0.5958
+LPIPS Input : 0.4368
+LPIPS Output: 0.5001
+
+=== 00002.png ===
+PSNR  Input : 22.4982
+PSNR  Output: 22.5781
+SSIM  Input : 0.6526
+SSIM  Output: 0.6207
+LPIPS Input : 0.3673
+LPIPS Output: 0.4470
+
+=== 00003.png ===
+PSNR  Input : 22.4568
+PSNR  Output: 22.5702
+SSIM  Input : 0.6921
+SSIM  Output: 0.6672
+LPIPS Input : 0.3386
+LPIPS Output: 0.4109
+
+=== 00004.png ===
+PSNR  Input : 22.8547
+PSNR  Output: 23.0916
+SSIM  Input : 0.6538
+SSIM  Output: 0.6250
+LPIPS Input : 0.4113
+LPIPS Output: 0.4899
+
+=== 00005.png ===
+PSNR  Input : 22.1905
+PSNR  Output: 22.3778
+SSIM  Input : 0.6773
+SSIM  Output: 0.6520
+LPIPS Input : 0.3760
+LPIPS Output: 0.4566
+
+=== 00007.png ===
+PSNR  Input : 22.0714
+PSNR  Output: 22.2868
+SSIM  Input : 0.7116
+SSIM  Output: 0.6903
+LPIPS Input : 0.3448
+LPIPS Output: 0.4145
+
+=== 00008.png ===
+PSNR  Input : 21.1827
+PSNR  Output: 21.4294
+SSIM  Input : 0.7211
+SSIM  Output: 0.7047
+LPIPS Input : 0.3456
+LPIPS Output: 0.4353
+
+=== 00009.png ===
+PSNR  Input : 24.0385
+PSNR  Output: 23.9929
+SSIM  Input : 0.7783
+SSIM  Output: 0.7671
+LPIPS Input : 0.2516
+LPIPS Output: 0.3469
+
+=== 00010.png ===
+PSNR  Input : 23.4008
+PSNR  Output: 23.4079
+SSIM  Input : 0.7277
+SSIM  Output: 0.7072
+LPIPS Input : 0.3115
+LPIPS Output: 0.4160
+
+=== 00011.png ===
+PSNR  Input : 22.7980
+PSNR  Output: 23.0874
+SSIM  Input : 0.7330
+SSIM  Output: 0.7197
+LPIPS Input : 0.3398
+LPIPS Output: 0.4034
+
+=== 00012.png ===
+PSNR  Input : 21.9616
+PSNR  Output: 22.1348
+SSIM  Input : 0.7022
+SSIM  Output: 0.6758
+LPIPS Input : 0.3525
+LPIPS Output: 0.4118
+
+=== 00013.png ===
+PSNR  Input : 22.2759
+PSNR  Output: 22.4709
+SSIM  Input : 0.7006
+SSIM  Output: 0.6731
+LPIPS Input : 0.3488
+LPIPS Output: 0.4220
+
+=== 00014.png ===
+PSNR  Input : 23.5084
+PSNR  Output: 23.5802
+SSIM  Input : 0.7645
+SSIM  Output: 0.7435
+LPIPS Input : 0.2570
+LPIPS Output: 0.3280
+
+=== 00015.png ===
+PSNR  Input : 23.0497
+PSNR  Output: 22.9803
+SSIM  Input : 0.7553
+SSIM  Output: 0.7272
+LPIPS Input : 0.2822
+LPIPS Output: 0.3826
+
+=== 00016.png ===
+PSNR  Input : 22.3929
+PSNR  Output: 22.2948
+SSIM  Input : 0.7062
+SSIM  Output: 0.6870
+LPIPS Input : 0.2862
+LPIPS Output: 0.3621
+
+=== 00017.png ===
+PSNR  Input : 22.1919
+PSNR  Output: 22.0306
+SSIM  Input : 0.7014
+SSIM  Output: 0.6722
+LPIPS Input : 0.2850
+LPIPS Output: 0.3794
+
+==============================
+📊 전체 평균 결과
+==============================
+평균 PSNR (Input):  22.8649 dB
+평균 PSNR (Output): 22.8570 dB
+평균 SSIM (Input):  0.7160
+평균 SSIM (Output): 0.6893
+평균 LPIPS (Input):  0.3184
+평균 LPIPS (Output): 0.4023
