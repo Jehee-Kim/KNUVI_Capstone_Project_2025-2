@@ -321,40 +321,44 @@
     loader.load(
       url,
       (geometry) => {
-        geometry.computeBoundingBox();
-        geometry.computeBoundingSphere();
+        // 1. 로드된 포인트 클라우드의 정보를 로그로 출력
+        console.log("PLY 파일 로드 완료!");
+        console.log("포인트 수:", geometry.getAttribute('position').count); // 포인트 수 확인
 
-        const hasColor = geometry.hasAttribute('color');
+        geometry.computeBoundingBox();  // Bounding Box 계산
+        geometry.computeBoundingSphere();  // Bounding Sphere 계산
+
+        // 포인트 클라우드의 크기 및 중심 위치 계산
         const radius = geometry.boundingSphere ? geometry.boundingSphere.radius : 1.0;
-        const pointSize = radius * 0.02 || 0.02;
+        const pointSize = Math.max(0.02, radius * 0.02);  // 점 크기 조정
+        const center = geometry.boundingSphere.center.clone(); // 중심점
 
+        // 2. 카메라 위치 자동 조정 (중심점으로 이동)
+        camera.position.set(center.x + radius * 2, center.y + radius * 2, center.z + radius * 2);  // 중심에서 일정 거리로 카메라 배치
+        camera.near = radius * 0.01;
+        camera.far = radius * 10;
+        camera.updateProjectionMatrix();
+
+        // 3. 점 크기 및 색상 설정
         const material = new THREE.PointsMaterial({
           size: pointSize,
           sizeAttenuation: true,
-          vertexColors: hasColor,
-          color: hasColor ? 0xffffff : 0x00ffff
+          vertexColors: true,
+          color: 0x00ffff  // 기본 색상
         });
 
+        // 기존에 있던 포인트 클라우드 제거
         if (pointCloud) {
           scene.remove(pointCloud);
           pointCloud.geometry.dispose();
           pointCloud.material.dispose();
         }
 
-        const center = geometry.boundingSphere.center.clone();
-        geometry.translate(-center.x, -center.y, -center.z);
-
+        // 새로운 포인트 클라우드로 씬에 추가
         pointCloud = new THREE.Points(geometry, material);
         scene.add(pointCloud);
 
-        const distance = (geometry.boundingSphere.radius || 1.0) * 3.0;
-        camera.position.set(distance * 0.7, distance * 0.7, distance);
-        camera.near = distance * 0.01;
-        camera.far = distance * 10.0;
-        camera.updateProjectionMatrix();
-        controls.target.set(0, 0, 0);
-        controls.update();
-
+        // 4. 포인트 클라우드 상태 업데이트
         overlayMsg.style.display = 'none';
         const numPoints = geometry.getAttribute('position').count;
         statElement.textContent = `포인트: ${numPoints.toLocaleString()}`;
