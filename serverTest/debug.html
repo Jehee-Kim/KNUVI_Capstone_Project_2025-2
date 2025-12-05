@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>PLY 서버 디버그용</title>
+  <style>
+    body {
+      background: #111;
+      color: #eee;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      padding: 16px;
+    }
+    label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-right: 8px;
+    }
+    select {
+      padding: 3px 6px;
+      border-radius: 4px;
+      border: 1px solid #444;
+      background: #181824;
+      color: #eee;
+      font-size: 12px;
+    }
+    button {
+      padding: 4px 10px;
+      border-radius: 4px;
+      border: 1px solid #444;
+      background: #2b2b40;
+      color: #eee;
+      cursor: pointer;
+      font-size: 12px;
+      margin-right: 6px;
+    }
+    button:hover {
+      background: #39395a;
+    }
+    #log {
+      white-space: pre-wrap;
+      background: #000;
+      border-radius: 6px;
+      padding: 10px;
+      margin-top: 16px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h3>PLY 서버 디버그 페이지</h3>
+
+  <div style="margin-bottom:10px;">
+    <label>
+      category:
+      <select id="categorySelect">
+        <option value="backpack" selected>backpack</option>
+        <option value="ball">ball</option>
+        <option value="book">book</option>
+        <option value="bottle">bottle</option>
+        <option value="chair">chair</option>
+        <option value="cup">cup</option>
+        <option value="handbag">handbag</option>
+        <option value="laptop">laptop</option>
+        <option value="plant">plant</option>
+        <option value="teddybear">teddybear</option>
+        <option value="vase">vase</option>
+      </select>
+    </label>
+
+    <label>
+      codec:
+      <select id="codecSelect">
+        <option value="JPEG" selected>JPEG</option>
+        <option value="AVC">AVC</option>
+      </select>
+    </label>
+
+    <label>
+      Q / QP:
+      <select id="qpSelect"></select>
+    </label>
+
+    <label>
+      frame:
+      <select id="frameSelect"></select>
+    </label>
+  </div>
+
+  <div style="margin-bottom:10px;">
+    <button id="btnFrames">/frames 테스트</button>
+    <button id="btnPly">/ply 테스트</button>
+  </div>
+
+  <div id="log">로그 출력 영역</div>
+
+<script>
+  const categorySelect = document.getElementById('categorySelect');
+  const codecSelect    = document.getElementById('codecSelect');
+  const qpSelect       = document.getElementById('qpSelect');
+  const frameSelect    = document.getElementById('frameSelect');
+  const btnFrames      = document.getElementById('btnFrames');
+  const btnPly         = document.getElementById('btnPly');
+  const logDiv         = document.getElementById('log');
+
+  const QP_OPTIONS = {
+    JPEG: [10, 30, 50, 70],
+    AVC: [27, 37, 47],
+  };
+
+  function log(msg) {
+    const t = new Date().toISOString().split('T')[1].split('.')[0];
+    logDiv.textContent += `\n[${t}] ${msg}`;
+  }
+
+  function setQPOptions() {
+    const codec = codecSelect.value;
+    const list = QP_OPTIONS[codec] || [];
+    qpSelect.innerHTML = "";
+    list.forEach((v, idx) => {
+      const opt = document.createElement("option");
+      opt.value = String(v);
+      opt.textContent = String(v);
+      qpSelect.appendChild(opt);
+    });
+    if (list.length > 0) {
+      qpSelect.value = String(list[0]);
+    }
+  }
+
+  async function loadFrames() {
+    const category = categorySelect.value;
+    const codec    = codecSelect.value;
+    const qp       = qpSelect.value;
+
+    frameSelect.innerHTML = "";
+    const loadingOpt = document.createElement("option");
+    loadingOpt.value = "";
+    loadingOpt.textContent = "(loading...)";
+    frameSelect.appendChild(loadingOpt);
+
+    const url =
+      `/frames?category=${encodeURIComponent(category)}` +
+      `&codec=${encodeURIComponent(codec)}` +
+      `&qp=${encodeURIComponent(qp)}`;
+
+    log(`요청: GET ${url}`);
+
+    try {
+      const res = await fetch(url);
+      log(`응답: /frames status = ${res.status}`);
+      if (!res.ok) {
+        frameSelect.innerHTML = "";
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = `(error ${res.status})`;
+        frameSelect.appendChild(opt);
+        return;
+      }
+      const list = await res.json();
+      log(`응답 JSON: ${JSON.stringify(list)}`);
+
+      frameSelect.innerHTML = "";
+      if (!Array.isArray(list) || list.length === 0) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "(no frames)";
+        frameSelect.appendChild(opt);
+        return;
+      }
+      list.forEach((f) => {
+        const opt = document.createElement("option");
+        opt.value = String(f);
+        opt.textContent = String(f);
+        frameSelect.appendChild(opt);
+      });
+      frameSelect.value = String(list[0]);
+      log(`frameSelect 기본 선택값 = ${list[0]}`);
+    } catch (e) {
+      log(`예외 발생: ${e}`);
+      frameSelect.innerHTML = "";
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "(fetch error)";
+      frameSelect.appendChild(opt);
+    }
+  }
+
+  async function testPly() {
+    const category = categorySelect.value;
+    const codec    = codecSelect.value;
+    const frame    = frameSelect.value;
+    const qp       = qpSelect.value;
+
+    if (!frame) {
+      alert("먼저 /frames를 불러서 frame을 선택해줘.");
+      return;
+    }
+
+    const url =
+      `/ply?category=${encodeURIComponent(category)}` +
+      `&codec=${encodeURIComponent(codec)}` +
+      `&frame=${encodeURIComponent(frame)}` +
+      `&qp=${encodeURIComponent(qp)}`;
+
+    log(`요청: GET ${url}`);
+
+    try {
+      const res = await fetch(url);
+      log(`응답: /ply status = ${res.status}`);
+
+      if (!res.ok) {
+        const txt = await res.text();
+        log(`에러 body: ${txt}`);
+        return;
+      }
+
+      const buf = await res.arrayBuffer();
+      log(`/ply body 크기 = ${buf.byteLength} bytes (앞 64바이트만 확인)`);
+    } catch (e) {
+      log(`예외 발생: ${e}`);
+    }
+  }
+
+  // 이벤트
+  codecSelect.addEventListener('change', () => {
+    setQPOptions();
+    loadFrames();
+  });
+  categorySelect.addEventListener('change', () => {
+    loadFrames();
+  });
+
+  btnFrames.addEventListener('click', () => {
+    loadFrames();
+  });
+
+  btnPly.addEventListener('click', () => {
+    testPly();
+  });
+
+  // 초기 상태: backpack / JPEG / QP=10 로 셋업 + 바로 /frames 호출
+  setQPOptions();
+  loadFrames();
+  log("초기화 완료: category=backpack, codec=JPEG, QP=10 기준으로 /frames 호출함.");
+</script>
+</body>
+</html>
