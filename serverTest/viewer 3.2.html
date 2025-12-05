@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Point Cloud Viewer (VGGT + Viser)</title>
+
+  <!-- three.js (r114) UMD 버전 -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.114.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.114.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.114.0/examples/js/loaders/PLYLoader.js"></script>
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #050509;
+      color: #eee;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 8px 16px;
+      border-bottom: 1px solid #222;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      flex-wrap: wrap;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background: #050509;
+      z-index: 1000;
+    }
+
+    label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    select {
+      padding: 3px 6px;
+      border-radius: 4px;
+      border: 1px solid #444;
+      background: #181824;
+      color: #eee;
+      font-size: 12px;
+    }
+
+    /* 뷰어 영역 */
+    #viewer {
+      flex: 1;
+      position: relative;
+      padding-top: 60px; /* 헤더 공간을 고려하여 뷰어 위치 조정 */
+    }
+
+    #overlayMessage {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #aaa;
+      font-size: 14px;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    #stat {
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+      font-size: 11px;
+      background: rgba(0,0,0,0.4);
+      padding: 4px 8px;
+      border-radius: 999px;
+    }
+
+    /* 버튼 영역 */
+    #buttonPanel {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    button {
+      padding: 10px;
+      background: #2b2b40;
+      border: 1px solid #444;
+      color: #eee;
+      cursor: pointer;
+      font-size: 14px;
+      border-radius: 5px;
+    }
+
+    button:hover {
+      background: #39395a;
+    }
+
+    /* 포인트 크기 조정 영역을 오른쪽 끝으로 배치 */
+    #pointSizeControl {
+      margin-left: auto; /* 우측 끝으로 배치 */
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    /* 로드 버튼을 frameSelect 옆으로 배치 */
+    #loadBtn {
+      margin-left: 10px;
+    }
+
+    /* 로드 버튼과 frame select 배치 정리 */
+    header > label {
+      display: flex;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 뷰어 영역 -->
+  <div id="viewer">
+    <div id="overlayMessage">
+      초기값: category=<b>backpack</b>, codec=<b>JPEG</b>, QP=<b>10</b><br/>
+      기준으로 frame 리스트를 자동으로 불러옵니다.<br/><br/>
+      값 조정 후 <b>로드 + 보기</b> 버튼을 누르면<br/>
+      서버에서 PLY를 받아와서 시각화합니다.
+    </div>
+    <div id="stat">포인트: 0</div>
+  </div>
+
+  <!-- 오른쪽 하단에 버튼 영역 추가 -->
+  <div id="buttonPanel">
+    <button id="transButton1">상</button>
+    <button id="transButton2">하</button>
+    <button id="transButton3">전</button>
+    <button id="transButton4">후</button>
+    <button id="transButton5">좌</button>
+    <button id="transButton6">우</button>
+  </div>
+
+  <!-- 헤더 영역 -->
+  <header>
+    <span><b>Point Cloud Viewer (VGGT + Viser)</b></span>
+
+    <!-- category -->
+    <label>
+      category:
+      <select id="categorySelect">
+        <option value="none" selected>(none)</option>
+        <option value="backpack">backpack</option>
+        <option value="ball">ball</option>
+        <option value="book">book</option>
+        <option value="bottle">bottle</option>
+        <option value="chair">chair</option>
+        <option value="cup">cup</option>
+        <option value="handbag">handbag</option>
+        <option value="laptop">laptop</option>
+        <option value="plant">plant</option>
+        <option value="teddybear">teddybear</option>
+        <option value="vase">vase</option>
+      </select>
+    </label>
+
+    <!-- codec -->
+    <label>
+      codec:
+      <select id="codecSelect">
+        <option value="none" selected>(none)</option>
+        <option value="JPEG">JPEG</option>
+        <option value="AVC">AVC</option>
+        <option value="Original">Original</option>
+      </select>
+    </label>
+
+    <!-- Q / QP -->
+    <label>
+      Q / QP:
+      <select id="qpSelect">
+        <option value="none" selected>(none)</option>
+      </select>
+    </label>
+
+    <!-- frame -->
+    <label>
+      frame:
+      <select id="frameSelect">
+        <option value="none" selected>(none)</option>
+      </select>
+    </label>
+
+    <!-- 포인트 크기 조정 -->
+    <div id="pointSizeControl">
+      <label>
+        Point Size:
+        <button id="pointSizeIncrease">+</button>
+        <span id="pointSizeValue">0.005</span>
+        <button id="pointSizeDecrease">-</button>
+      </label>
+    </div>
+
+    <!-- 로드 버튼 -->
+    <button id="loadBtn">로드 + 보기</button>
+    <span id="urlText"></span>
+  </header>
+
+  <div id="log">[log] 초기화 중...</div>
+
+  <script>
+    // === DOM 요소 ===
+    const categorySelect = document.getElementById('categorySelect');
+    const codecSelect    = document.getElementById('codecSelect');
+    const qpSelect       = document.getElementById('qpSelect');
+    const frameSelect    = document.getElementById('frameSelect');
+    const loadBtn        = document.getElementById('loadBtn');
+    const urlText        = document.getElementById('urlText');
+
+    let scene, camera, renderer, controls, pointCloud = null;
+
+    const QP_OPTIONS = {
+      JPEG: [10, 30, 50, 70],
+      AVC:  [27, 37, 47],
+    };
+
+    // 포인트 크기 초기값
+    let pointSize = 0.005;
+
+    // === QP 세팅 ===
+    function setQPOptions() {
+      const codec = codecSelect.value;
+      const list = QP_OPTIONS[codec] || [];
+      qpSelect.innerHTML = "<option value='none' selected>(none)</option>";
+      list.forEach(v => {
+        const opt = document.createElement("option");
+        opt.value = String(v);
+        opt.textContent = String(v);
+        qpSelect.appendChild(opt);
+      });
+      if (list.length > 0) {
+        qpSelect.value = String(list[0]); // 기본값 10 or 27
+      }
+    }
+
+    // === /frames 호출 ===
+    async function loadFrames() {
+      const category = categorySelect.value;
+      const codec    = codecSelect.value;
+      const qp       = qpSelect.value;
+
+      frameSelect.innerHTML = "<option value='none' selected>(none)</option>";
+      const loadingOpt = document.createElement("option");
+      loadingOpt.value = "";
+      loadingOpt.textContent = "(loading...)";
+      frameSelect.appendChild(loadingOpt);
+
+      if (category === "none" || codec === "none" || (codec != "Original" && qp === "none")) {
+        return; // 선택된 값이 없으면 처리하지 않음
+      }
+
+      const url =
+        `/frames?category=${encodeURIComponent(category)}` +
+        `&codec=${encodeURIComponent(codec)}` +
+        `&qp=${encodeURIComponent(qp)}`;
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) {
+          frameSelect.innerHTML = "";
+          const opt = document.createElement("option");
+          opt.value = "";
+          opt.textContent = `(error ${res.status})`;
+          frameSelect.appendChild(opt);
+          return;
+        }
+        const list = await res.json();
+
+        frameSelect.innerHTML = "<option value='none' selected>(none)</option>";
+        if (!Array.isArray(list) || list.length === 0) {
+          const opt = document.createElement("option");
+          opt.value = "";
+          opt.textContent = "(no frames)";
+          frameSelect.appendChild(opt);
+          return;
+        }
+        list.forEach((f) => {
+          const opt = document.createElement("option");
+          opt.value = String(f);
+          opt.textContent = String(f);
+          frameSelect.appendChild(opt);
+        });
+        frameSelect.value = String(list[0]);
+      } catch (e) {
+        frameSelect.innerHTML = "<option value='none' selected>(none)</option>";
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "(fetch error)";
+        frameSelect.appendChild(opt);
+      }
+    }
+
+    // === /ply 호출 + PLYLoader ===
+    async function loadAndViewPly() {
+      const category = categorySelect.value;
+      const codec    = codecSelect.value;
+      const frame    = frameSelect.value;
+      const qp       = qpSelect.value;
+
+      if (category === "none" || codec === "none" || (codec != "Original" && qp === "none") || frame === "none") {
+        alert("모든 항목을 선택해주세요.");
+        return;
+      }
+
+      const url =
+        `/ply?category=${encodeURIComponent(category)}` +
+        `&codec=${encodeURIComponent(codec)}` +
+        `&frame=${encodeURIComponent(frame)}` +
+        `&qp=${encodeURIComponent(qp)}` +
+        `&point_size=${encodeURIComponent(pointSize)}`;  // 포인트 크기 포함
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) {
+          const txt = await res.text();
+          console.log(`에러 body: ${txt}`);
+          return;
+        }
+
+        const buf = await res.arrayBuffer();
+        console.log(`/ply body 크기 = ${buf.byteLength} bytes (이후 PLYLoader로 다시 로드)`);
+      } catch (e) {
+        console.log(`예외 발생(loadAndViewPly - fetch): ${e}`);
+        return;
+      }
+
+      const loader = new THREE.PLYLoader();
+      loader.load(
+        url,
+        (geometry) => {
+          const material = new THREE.PointsMaterial({
+            size: pointSize,
+            sizeAttenuation: true,
+            vertexColors: true,
+          });
+
+          if (pointCloud) {
+            scene.remove(pointCloud);
+            pointCloud.geometry.dispose();
+            pointCloud.material.dispose();
+          }
+
+          pointCloud = new THREE.Points(geometry, material);
+          scene.add(pointCloud);
+
+          const numPoints = geometry.getAttribute('position').count;
+          statElement.textContent = `포인트: ${numPoints.toLocaleString()}`;
+        },
+        undefined,
+        (error) => {
+          console.error("PLY 로딩 에러:", error);
+        }
+      );
+    }
+
+    // === 포인트 크기 조정 ===
+    const pointSizeIncrease = document.getElementById("pointSizeIncrease");
+    const pointSizeDecrease = document.getElementById("pointSizeDecrease");
+    const pointSizeValue = document.getElementById("pointSizeValue");
+
+    pointSizeIncrease.addEventListener("click", () => {
+      pointSize = Math.min(pointSize + 0.001, 0.01);
+      pointSizeValue.textContent = pointSize.toFixed(3);
+      loadAndViewPly();
+    });
+
+    pointSizeDecrease.addEventListener("click", () => {
+      pointSize = Math.max(pointSize - 0.001, 0.001);
+      pointSizeValue.textContent = pointSize.toFixed(3);
+      loadAndViewPly();
+    });
+
+    // === three.js 초기화 ===
+    function initThree() {
+      const width = viewer.clientWidth || window.innerWidth;
+      const height = viewer.clientHeight || (window.innerHeight - 140);
+
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x050509);
+
+      camera = new THREE.PerspectiveCamera(60, width / height, 0.01, 1000);
+      camera.position.set(0, 0, 3);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(width, height);
+      viewer.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.08;
+
+      const grid = new THREE.GridHelper(10, 10, 0x444444, 0x222222);
+      grid.position.y = -2;
+      scene.add(grid);
+
+      const axes = new THREE.AxesHelper(1.0);
+      scene.add(axes);
+
+      window.addEventListener('resize', () => {
+        const w = viewer.clientWidth || window.innerWidth;
+        const h = viewer.clientHeight || (window.innerHeight - 140);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+      });
+
+      function animate() {
+        requestAnimationFrame(animate);
+        if (controls) controls.update();
+        renderer.render(scene, camera);
+      }
+      animate();
+    }
+
+    // === 이벤트 & 초기화 ===
+    codecSelect.addEventListener('change', () => {
+      setQPOptions();
+      loadFrames();
+    });
+    categorySelect.addEventListener('change', () => {
+      loadFrames();
+    });
+
+    loadBtn.addEventListener('click', () => {
+      loadAndViewPly();
+    });
+
+    window.addEventListener('load', () => {
+      initThree();
+      setQPOptions();
+      loadFrames();
+    });
+  </script>
+</body>
+</html>
