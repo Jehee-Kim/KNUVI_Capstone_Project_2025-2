@@ -1,15 +1,9 @@
-// server.c : 아주 간단한 HTTP 서버 (맥/리눅스용, 단일 스레드)
-// GET /viewer.html -> viewer.html 파일 전송
-// GET /frames?category=...&codec=...&qp=... -> 사용 가능한 frame 리스트(JSON) 전송
-// GET /ply?category=...&codec=...&frame=...&qp=... -> 로컬 폴더에서 points.ply 전송
-
 #include <dirent.h>   // 폴더 읽기용
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
-#include <ctype.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -90,29 +84,28 @@ void handle_frames(int client_fd, const char *query) {
 
     char dirpath[1024];
 
-    if (strcmp(codec, "JPEG") == 0) {
-        // /Users/.../plyAll/JPEG/output_JPEG10/output_backpack
+    if (strcmp(codec, "Original") == 0) {
+        snprintf(dirpath, sizeof(dirpath),
+                 "%s/original/output_%s", BASE_DIR, category); // Original 처리
+    } else if (strcmp(codec, "JPEG") == 0) {
         snprintf(dirpath, sizeof(dirpath),
                  "%s/JPEG/output_JPEG%s/output_%s",
                  BASE_DIR, qp, category);
     } else if (strcmp(codec, "AVC") == 0) {
-        // AVC 폴더 구조는 JPEG와 비슷하다고 "추측"해서 이렇게 둠
-        // 예: /Users/.../plyAll/AVC/output_AVC27/output_backpack
         snprintf(dirpath, sizeof(dirpath),
                  "%s/AVCRA/output_AVCRA%s/output_%s",
                  BASE_DIR, qp, category);
     } else {
         printf("[/frames] 지원하지 않는 codec: %s\n", codec);
         send_text_response(client_fd, 400, "Bad Request",
-                           "지원하지 않는 codec 입니다. (JPEG 또는 AVC)\n");
+                           "지원하지 않는 codec 입니다. (JPEG, AVC, Original)\n");
         return;
     }
 
-    printf("[/frames] 디렉토리 탐색: %s\n", dirpath);
+    printf("[/frames] 디렉토리 경로: %s\n", dirpath);
 
     DIR *dir = opendir(dirpath);
     if (!dir) {
-        // 폴더 없으면 그냥 빈 리스트 반환
         printf("[/frames] 디렉토리 없음. 빈 리스트 보냄.\n");
         const char *json = "[]";
         char header[256];
@@ -134,12 +127,12 @@ void handle_frames(int client_fd, const char *query) {
     struct dirent *ent;
     while ((ent = readdir(dir)) != NULL) {
         const char *name = ent->d_name;
-        if (name[0] == '.') continue;             // . .. 숨김폴더 건너뛰기
+        if (name[0] == '.') continue;
         if (strncmp(name, "frame", 5) != 0) continue;
-        if (strlen(name) < 11) continue;          // "frame" + 6자리 숫자 이상이어야 함
+        if (strlen(name) < 11) continue;
 
         char numbuf[7];
-        memcpy(numbuf, name + 5, 6);              // "frame" 뒤 6자리
+        memcpy(numbuf, name + 5, 6);
         numbuf[6] = '\0';
         int f = atoi(numbuf);
         if (f < 0) continue;
@@ -185,6 +178,7 @@ void handle_frames(int client_fd, const char *query) {
     write(client_fd, header, hlen);
     write(client_fd, json, strlen(json));
 }
+
 
 // ------------------- 쿼리스트링 파라미터 파싱 -------------------
 int get_query_value(const char *query, const char *key, char *out, size_t out_size) {
@@ -268,7 +262,7 @@ void handle_viewer_html(int client_fd) {
 // ------------------- /ply 처리 -------------------
 void handle_ply(int client_fd, const char *query) {
     char category[64]  = {0};  // backpack, ball, ...
-    char codec[16]     = {0};  // JPEG or AVC
+    char codec[16]     = {0};  // JPEG or AVC or Original
     char frame_str[64] = {0};  // "1" 같은 문자열
     char qp[64]        = {0};  // "10", "30", ...
 
@@ -300,21 +294,21 @@ void handle_ply(int client_fd, const char *query) {
     char filepath[1024];
 
     if (strcmp(codec, "JPEG") == 0) {
-        // /Users/.../plyAll/JPEG/output_JPEG10/output_backpack/frame000001_JPEG_Q10/points.ply
         snprintf(filepath, sizeof(filepath),
                  "%s/JPEG/output_JPEG%s/output_%s/frame%s_JPEG_Q%s/points.ply",
                  BASE_DIR, qp, category, frame_padded, qp);
 
     } else if (strcmp(codec, "AVC") == 0) {
-        // AVC 폴더 구조는 JPEG와 비슷하다고 "추측"해서 이렇게 둠
-        // /Users/.../plyAll/AVC/output_AVC27/output_backpack/frame000001_AVC_Q27/points.ply (추측)
         snprintf(filepath, sizeof(filepath),
                  "%s/AVCRA/output_AVCRA%s/output_%s/frame%s_AVCRA_%s/points.ply",
                  BASE_DIR, qp, category, frame_padded, qp);
+    } else if (strcmp(codec, "Original") == 0) {
+        snprintf(filepath, sizeof(filepath),
+                 "%s/original/output_%s/frame%s/points.ply", BASE_DIR, category, frame_padded); // Original 처리
     } else {
         printf("[/ply] 지원하지 않는 codec: %s\n", codec);
         send_text_response(client_fd, 400, "Bad Request",
-                           "지원하지 않는 codec 입니다. (JPEG 또는 AVC)\n");
+                           "지원하지 않는 codec 입니다. (JPEG, AVC, Original)\n");
         return;
     }
 
@@ -414,33 +408,37 @@ void handle_client(int client_fd) {
 
     close(client_fd);
 }
-
 // ------------------- main -------------------
 int main(void) {
     // stdout 버퍼 비움 (printf가 바로바로 찍히게)
     setvbuf(stdout, NULL, _IONBF, 0);
 
+    // 서버 소켓 생성
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd < 0) {
         perror("socket");
         exit(1);
     }
 
+    // 소켓 옵션 설정 (재사용 주소)
     int opt = 1;
     setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
+    // 서버 주소 설정
     struct sockaddr_in addr;
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
-    addr.sin_port = htons(PORT);
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    addr.sin_port = htons(PORT);  // 지정된 포트
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);  // 모든 IP에서 연결 허용
 
+    // 바인드(bind) 호출
     if (bind(server_fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
         perror("bind");
         close(server_fd);
         exit(1);
     }
 
+    // 클라이언트 연결 대기
     if (listen(server_fd, 16) < 0) {
         perror("listen");
         close(server_fd);
@@ -449,7 +447,9 @@ int main(void) {
 
     printf("서버 시작: http://localhost:%d/viewer.html\n", PORT);
 
+    // 무한 루프: 클라이언트 요청 대기
     while (1) {
+        // 클라이언트 연결 수락
         struct sockaddr_in client_addr;
         socklen_t client_len = sizeof(client_addr);
         int client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &client_len);
@@ -457,9 +457,12 @@ int main(void) {
             perror("accept");
             continue;
         }
+
+        // 클라이언트 요청 처리
         handle_client(client_fd);
     }
 
+    // 서버 종료 시 소켓 닫기
     close(server_fd);
     return 0;
 }
