@@ -1,71 +1,73 @@
 import os
 import subprocess
 import numpy as np
+import csv
 from imageio import imread
 from skimage.metrics import peak_signal_noise_ratio as psnr
+from skimage.metrics import structural_similarity as ssim
+from skimage.transform import resize
+import torch
+import lpips
 
 # ======================
-# 폴더 단위 PSNR 계산 함수
+# LPIPS 모델 초기화
 # ======================
-def calc_folder_psnr(gt_dir, pred_dir):
-    # GT 폴더의 정상 이미지들만 선택
+lpips_alex = lpips.LPIPS(net='alex')
+lpips_alex.eval()
+
+# ======================
+# 단일 이미지 지표 계산
+# ======================
+def calc_image_metrics(gt_img, pred_img):
+    # 크기 자동 맞춤
+    if gt_img.shape != pred_img.shape:
+        pred_img = resize(pred_img, gt_img.shape, preserve_range=True, anti_aliasing=True).astype(gt_img.dtype)
+    
+    gt = gt_img.astype(np.float32) / 255.0
+    pr = pred_img.astype(np.float32) / 255.0
+
+    psnr_val = psnr(gt, pr, data_range=1.0)
+    ssim_val = ssim(gt, pr, data_range=255, channel_axis=2, win_size=min(gt.shape[0], gt.shape[1], 7))
+
+    gt_t = torch.tensor(gt).permute(2,0,1).unsqueeze(0)*2 -1
+    pr_t = torch.tensor(pr).permute(2,0,1).unsqueeze(0)*2 -1
+    with torch.no_grad():
+        lpips_val = lpips_alex(gt_t, pr_t).item()
+
+    return psnr_val, ssim_val, lpips_val
+
+# ======================
+# 폴더 단위 지표 계산
+# ======================
+def calc_folder_metrics(gt_dir, pred_dir):
     files = sorted([
         f for f in os.listdir(gt_dir)
-        if f.lower().endswith(("png", "jpg", "jpeg")) and not f.startswith("._")
+        if f.lower().endswith(("png","jpg","jpeg")) and not f.startswith("._")
     ])
+    psnr_list, ssim_list, lpips_list = [], [], []
 
-    psnr_list = []
     for f in files:
-        gt = imread(os.path.join(gt_dir, f))
-        pr = imread(os.path.join(pred_dir, f))
-        psnr_list.append(psnr(gt, pr, data_range=255))
-
-    return float(np.mean(psnr_list))
-
-
-# ===============================================
-# 여러 range 폴더 중 GT와 가장 PSNR 높은 폴더 찾기
-# ===============================================
-def find_best_range_folder(gt_dir, pred_base_dir):
-    range_folders = sorted([
-        d for d in os.listdir(pred_base_dir)
-        if os.path.isdir(os.path.join(pred_base_dir, d))
-    ])
-
-    best_psnr = -1
-    best_folder = None
-
-    for rf in range_folders:
-        pred_dir = os.path.join(pred_base_dir, rf)
-
-        # 이미지 폴더가 아닌 경우 스킵
-        if not os.path.isdir(pred_dir):
+        gt_path = os.path.join(gt_dir, f)
+        pred_path = os.path.join(pred_dir, f)
+        if not os.path.exists(pred_path):
             continue
+        gt_img = imread(gt_path)
+        pr_img = imread(pred_path)
+        ps, ss, lp = calc_image_metrics(gt_img, pr_img)
+        psnr_list.append(ps)
+        ssim_list.append(ss)
+        lpips_list.append(lp)
 
-        try:
-            score = calc_folder_psnr(gt_dir, pred_dir)
-            print(f"    Range {rf} → PSNR {score:.4f} dB")  # 각 폴더 PSNR 출력
+    return np.mean(psnr_list), np.mean(ssim_list), np.mean(lpips_list)
 
-            if score > best_psnr:
-                best_psnr = score
-                best_folder = pred_dir
-
-        except Exception as e:
-            print(f"    Skip {rf}: {e}")
-            continue
-
-    return best_folder, best_psnr
-
-
-# ===============================================
-# OSCAR 실행 (한 케이스에 대해)
-# ===============================================
-def run_oscar_case(case_name, input_dir, gt_dir):
+# ======================
+# 모든 range 폴더 기록 + best 선택
+# ======================
+def run_oscar_case(case_name, input_dir, gt_dir, writer):
     output_dir = f"output{case_name}"
-
     print(f"\n=== Running OSCAR on {input_dir} → {output_dir} ===")
 
-    # main_test.py 실행 (전체 디렉토리 넣기)
+    # OSCAR 실행
     subprocess.run([
         "python3", "main_test.py",
         "--input_image", input_dir,
@@ -74,24 +76,52 @@ def run_oscar_case(case_name, input_dir, gt_dir):
         "--oscar_path", "model_zoo/oscar.pkl"
     ], check=True)
 
-    # 입력 PSNR 계산
-    psnr_before = calc_folder_psnr(gt_dir, input_dir)
+    # Before metrics (원본 폴더)
+    metrics_before = calc_folder_metrics(gt_dir, input_dir)
+    print(f" → JPEG{case_name} BEFORE: PSNR {metrics_before[0]:.4f}, SSIM {metrics_before[1]:.4f}, LPIPS {metrics_before[2]:.4f}")
 
-    # 출력 range 폴더 중 가장 좋은 결과 찾기
-    best_folder, psnr_after = find_best_range_folder(gt_dir, output_dir)
+    # 모든 range 폴더 계산
+    range_folders = sorted([d for d in os.listdir(output_dir) if os.path.isdir(os.path.join(output_dir, d))])
+    best_psnr = -1
+    best_folder = None
+    best_metrics = None
 
-    print(f"\n → JPEG{case_name} before: {psnr_before:.4f} dB")
-    print(f" → JPEG{case_name} best after: {psnr_after:.4f} dB")
-    print(f" → Best folder: {best_folder}")
+    for rf in range_folders:
+        pred_dir = os.path.join(output_dir, rf)
+        try:
+            metrics_after = calc_folder_metrics(gt_dir, pred_dir)
+            is_best = False
+            if metrics_after[0] > best_psnr:
+                best_psnr = metrics_after[0]
+                best_folder = rf
+                best_metrics = metrics_after
+                is_best = True  # 우선 True, 나중에 다시 표시 가능
 
-    return psnr_before, psnr_after
+            # CSV 기록
+            writer.writerow([
+                case_name, rf,
+                round(metrics_before[0],4),
+                round(metrics_before[1],4),
+                round(metrics_before[2],4),
+                round(metrics_after[0],4),
+                round(metrics_after[1],4),
+                round(metrics_after[2],4),
+                is_best
+            ])
 
+            print(f"    Range {rf} → PSNR {metrics_after[0]:.4f}, SSIM {metrics_after[1]:.4f}, LPIPS {metrics_after[2]:.4f}")
+        except Exception as e:
+            print(f"    Skip {rf}: {e}")
+            continue
 
-# ===============================================
-# 메인 실행
-# ===============================================
+    print(f" → JPEG{case_name} BEST folder: {best_folder}, PSNR {best_metrics[0]:.4f}, SSIM {best_metrics[1]:.4f}, LPIPS {best_metrics[2]:.4f}")
+    return metrics_before, best_metrics
+
+# ======================
+# 메인 실행 및 CSV 기록
+# ======================
 if __name__ == "__main__":
-    os.chdir("OSCAR")  # test/OSCAR 디렉토리로 이동
+    os.chdir("OSCAR")
 
     cases = [
         ("10", "../jpeg10", "../gt_for_jpeg10"),
@@ -100,9 +130,16 @@ if __name__ == "__main__":
     ]
 
     results = {}
-    for case_name, inp, gt in cases:
-        results[case_name] = run_oscar_case(case_name, inp, gt)
+    csv_file = "oscar_metrics_all_ranges.csv"
+    with open(csv_file, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            "JPEG","range","PSNR_before","SSIM_before","LPIPS_before",
+            "PSNR_after","SSIM_after","LPIPS_after","is_best"
+        ])
 
-    print("\n================ Summary ================")
-    for k, (b, a) in results.items():
-        print(f"JPEG{k} → before: {b:.4f} dB | after: {a:.4f} dB")
+        for case_name, inp, gt in cases:
+            metrics_before, metrics_after = run_oscar_case(case_name, inp, gt, writer)
+            results[case_name] = (metrics_before, metrics_after)
+
+    print(f"\nAll results saved to {csv_file}")
