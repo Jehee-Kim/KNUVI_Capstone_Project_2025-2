@@ -1,7 +1,7 @@
 # Point Cloud Viewer Server
 
 ## Description
-This is a server and viewer for rendering point clouds, built using `C`, `Three.js`, and `PLY` file format. The server serves `.ply` files for visualization and allows you to interact with point clouds in the browser.
+This is a server and viewer for rendering point clouds, built using **C**, **Three.js**, and **PLY** file format. The server serves `.ply` files for visualization and allows you to interact with point clouds in the browser.
 
 ---
 
@@ -29,45 +29,72 @@ You can download the necessary PLY files from the following link:
 #### Compile the Server Code:
 ```bash
 gcc server.c -o server
-Start the Server:
-The server needs a directory containing the PLY files as an argument. Use the following command to start the server, replacing /yourDirectory/plyAll with the path to your local directory that contains the PLY files:
+````
 
-bash
-코드 복사
+#### Start the Server:
+
+The server needs a directory containing the PLY files as an argument. Use the following command to start the server, replacing `/yourDirectory/plyAll` with the path to your local directory that contains the PLY files:
+
+```bash
 ./server /yourDirectory/plyAll
-The server will start and listen for incoming connections on port 9090.
+```
 
-Running the Viewer
-1. Open the Viewer
+The server will start and listen for incoming connections on port `9090`.
+
+---
+
+## Running the Viewer
+
+### 1. **Open the Viewer**
+
 Once the server is running, open your browser and navigate to:
 
-bash
-코드 복사
+```
 http://localhost:9090/viewer.html
+```
+
 This will load the viewer interface where you can interact with the point clouds.
 
-Features
-Category Selection: Choose the category of point cloud you want to view.
+---
 
-Codec Selection: Choose the codec (e.g., JPEG, AVC, Original) for the point cloud data.
+## Features
 
-QP Selection: Choose the quality setting for the point cloud data.
+* **Category Selection**: Choose the category of point cloud you want to view.
+* **Codec Selection**: Choose the codec (e.g., JPEG, AVC, Original) for the point cloud data.
+* **QP Selection**: Choose the quality setting for the point cloud data.
+* **Frame Selection**: Choose the specific frame to visualize.
+* **Point Size Control**: Adjust the size of the points for better visualization.
+* **Navigation Controls**: Use buttons to switch between predefined viewpoints (e.g., Top, Bottom, Front, Back, Left, Right).
 
-Frame Selection: Choose the specific frame to visualize.
+---
 
-Point Size Control: Adjust the size of the points for better visualization.
+## Troubleshooting
 
-Navigation Controls: Use buttons to switch between predefined viewpoints (e.g., Top, Bottom, Front, Back, Left, Right).
+* **Error: Unable to find the PLY file**
 
-Troubleshooting
-Error: Unable to find the PLY file
+  * Ensure that the `BASE_DIR` in the server is correctly set to the path containing your PLY files.
 
-Ensure that the BASE_DIR in the server is correctly set to the path containing your PLY files.
+* **Error: Can't connect to localhost:9090**
 
-Error: Can't connect to localhost:9090
+  * Ensure that the server is running and that port `9090` is not blocked by a firewall.
 
-Ensure that the server is running and that port 9090 is not blocked by a firewall.
+* **Error: Server crashes or cannot start**
 
-License
-This project is open source and available under the MIT License.
+  * Ensure you have compiled the server properly using `gcc`.
+  * Verify that the PLY file directory path is correctly provided when starting the server.
 
+---
+
+## License
+
+This project is open source and available under the MIT License. Feel free to modify and distribute it as needed!
+
+---
+
+## Notes
+
+* Ensure your server directory is correctly pointing to the location of the **PLY files**.
+* The server supports **JPEG**, **AVC**, and **Original** codec formats for the point cloud data.
+* The viewer allows you to control the visualization of the point cloud with adjustable point sizes and frame selection.
+
+For further details or contributions, feel free to contact the project maintainers.
