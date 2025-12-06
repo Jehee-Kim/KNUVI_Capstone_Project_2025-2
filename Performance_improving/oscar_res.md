@@ -14,52 +14,66 @@
 
 ## 2. 전체 결과
 
-### JPEG10
-- **Before**: PSNR 22.6170, SSIM 0.9998, LPIPS 0.3334
-- **Range별 After**
-    - Range 0.0019 → PSNR 12.5056, SSIM 0.9935, LPIPS 0.8459  
-    - Range 0.0098 → PSNR 14.3914, SSIM 0.9962, LPIPS 0.7498  
-    - Range 0.0313 → PSNR 15.7187, SSIM 0.9978, LPIPS 0.5676  
-    - Range 0.0430 → PSNR 16.4308, SSIM 0.9984, LPIPS 0.5487  
-    - Range 0.0625 → PSNR 16.5166, SSIM 0.9984, LPIPS 0.5502  
-    - Range 0.0781 → PSNR 17.2520, SSIM 0.9988, LPIPS 0.5104  
-    - Range 0.0937 → PSNR 17.8544, SSIM 0.9992, LPIPS 0.5006  
-    - Range 0.1250 → PSNR 18.2837, SSIM 0.9993, LPIPS 0.4854  
-- **Best folder**: 0.125, PSNR 18.2837, SSIM 0.9993, LPIPS 0.4854
+### JPEG 10
 
-### JPEG50
-- **Before**: PSNR 26.9773, SSIM 1.0000, LPIPS 0.0707
-- **Range별 After**
-    - Range 0.0019 → PSNR 12.2537, SSIM 0.9931, LPIPS 0.8117  
-    - Range 0.0098 → PSNR 14.1237, SSIM 0.9959, LPIPS 0.6821  
-    - Range 0.0313 → PSNR 15.6053, SSIM 0.9978, LPIPS 0.4703  
-    - Range 0.0430 → PSNR 16.3470, SSIM 0.9984, LPIPS 0.4390  
-    - Range 0.0625 → PSNR 16.6829, SSIM 0.9986, LPIPS 0.4030  
-    - Range 0.0781 → PSNR 17.0987, SSIM 0.9988, LPIPS 0.3783  
-    - Range 0.0937 → PSNR 17.8309, SSIM 0.9992, LPIPS 0.3453  
-    - Range 0.1250 → PSNR 18.3174, SSIM 0.9993, LPIPS 0.3256  
-- **Best folder**: 0.125, PSNR 18.3174, SSIM 0.9993, LPIPS 0.3256
+Before: PSNR 22.6170, SSIM 0.6948, LPIPS 0.3334
 
-### JPEG70
-- **Before**: PSNR 28.7367, SSIM 1.0000, LPIPS 0.0374
-- **Range별 After**
-    - Range 0.0019 → PSNR 12.2630, SSIM 0.9931, LPIPS 0.8056  
-    - Range 0.0098 → PSNR 14.1036, SSIM 0.9958, LPIPS 0.6708  
-    - Range 0.0313 → PSNR 15.5869, SSIM 0.9978, LPIPS 0.4568  
-    - Range 0.0430 → PSNR 16.3319, SSIM 0.9984, LPIPS 0.4271  
-    - Range 0.0625 → PSNR 16.6821, SSIM 0.9986, LPIPS 0.3933  
-    - Range 0.0781 → PSNR 17.0661, SSIM 0.9988, LPIPS 0.3680  
-    - Range 0.0937 → PSNR 17.8029, SSIM 0.9992, LPIPS 0.3355  
-    - Range 0.1250 → PSNR 18.2552, SSIM 0.9993, LPIPS 0.3149  
-- **Best folder**: 0.125, PSNR 18.2552, SSIM 0.9993, LPIPS 0.3149
+Range별 After
+Range	PSNR	SSIM	LPIPS
+0.0019	12.7350	0.1733	0.7877
+0.0098	14.7728	0.2089	0.6752
+0.0313	16.1434	0.2659	0.4366
+0.0430	16.8798	0.2878	0.4098
+0.0625	16.9815	0.3412	0.3943
+0.0781	17.7341	0.3765	0.3488
+0.0937	18.3665	0.3925	0.3355
+0.1250	18.8658	0.4203	0.3138
 
+**Best Range: 0.125
+PSNR 18.8658 / SSIM 0.4203 / LPIPS 0.3138**
+
+### JPEG 50
+
+Before: PSNR 26.9773, SSIM 0.8770, LPIPS 0.0707
+
+Range별 After
+Range	PSNR	SSIM	LPIPS
+0.0019	12.4422	0.1734	0.7737
+0.0098	14.4597	0.2088	0.6258
+0.0313	15.9011	0.2600	0.3726
+0.0430	16.6446	0.2803	0.3356
+0.0625	16.9628	0.3356	0.2888
+0.0781	17.3698	0.3724	0.2648
+0.0937	18.1387	0.3874	0.2331
+0.1250	18.6823	0.4193	0.2084
+
+**Best Range: 0.125
+PSNR 18.6823 / SSIM 0.4193 / LPIPS 0.2084**
+
+### JPEG 70
+
+Before: PSNR 28.7367, SSIM 0.9141, LPIPS 0.0374
+
+Range별 After
+Range	PSNR	SSIM	LPIPS
+0.0019	12.4481	0.1679	0.7723
+0.0098	14.4309	0.2059	0.6181
+0.0313	15.8659	0.2567	0.3686
+0.0430	16.6121	0.2773	0.3351
+0.0625	16.9352	0.3332	0.2885
+0.0781	17.3034	0.3686	0.2619
+0.0937	18.0706	0.3842	0.2335
+0.1250	18.5709	0.4162	0.2076
+
+Best Range: 0.125
+PSNR 18.5709 / SSIM 0.4162 / LPIPS 0.2076
 ---
 
 ## 3. 분석 요약
 1. **PSNR**: range가 증가할수록 개선되나 denoising 효과 x 
-2. **SSIM**: 거의 0.99 이상으로 안정적, 구조적 손상 거의 없음
-3. **LPIPS**: range 증가할수록 개선되나 denoising 효과 x 
-4. **종합**: PSNR 기준 최적 range는 모두 0.125 수준, range를 더 높여서 실험해볼 것
+2. **SSIM**: range가 증가할수록 개선되나 denoising 효과 x 
+3. **LPIPS**: range 증가할수록 개선되며 JPEG10에서만 효과를 보임
+4. **종합**: 최적 range는 모두 0.125 수준, range를 더 높여서 실험해볼 것
 
 ---
 
@@ -95,7 +109,7 @@
 - OSCAR는 내부 구조 상 **width와 height가 128의 배수**인 이미지만 처리 가능  
 - 따라서 실제 입력 이미지가 128 배수가 아닐 경우, 모델은 자동으로 **center crop 또는 resize**를 수행하게 됨
 - 이 과정에서 원본 비율과 픽셀 구조가 변하면서 PSNR, SSIM, LPIPS 등 **정량 지표가 저하**될 수 있음
-- 해당 실험에서도 flowers 해상도 618x414 -> oscar가 강제 resize (512x512) -> 정량평가 시 618x414로 다시 resize. 해당과정에서 이미지가 약간 왜곡되거나 잘림 → LPIPS/PSNR 하락 가능성
+- 해당 실험에서도 flowers 해상도 618x414 -> oscar가 강제 resize (512x512) -> 정량평가 시 gt를 512x512로 resize하여 계산. 해당과정에서 이미지가 약간 왜곡되거나 잘림 → 품질 하락 가능성
 - **해결 방안 후보**
   1. **원본 비율 유지 + padding**: 128의 배수로 맞추되, 이미지 내용 손상 없이 주변에 0 또는 평균값 패딩
   2. **Crop 후 입력**: 이미지 비율을 강제로 맞춘 후 모델 입력, 이후 복원 결과를 다시 원본 크기로 resize
