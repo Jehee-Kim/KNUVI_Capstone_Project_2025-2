@@ -13,11 +13,14 @@
 
 #define PORT 9090           // 포트 (9090 사용 중이면 8080 등으로 바꿔도 됨)
 
-// ★★ 여기를 네 PLY 최상위 폴더로 바꿔줘야 함 ★★
-#define BASE_DIR "/Users/jehee/Documents/KNU/capstone/plyAll"
+// 기본 BASE_DIR 설정, 만약 아규먼트로 받지 않으면 기본값이 사용됨
+#define DEFAULT_BASE_DIR "/Users/jehee/Documents/KNU/capstone/plyAll"
 
 // 최대 요청 크기
 #define REQ_BUF_SIZE 8192
+
+// 전역변수로 BASE_DIR 선언
+const char *BASE_DIR;
 
 // ---- 함수 프로토타입(선언) ----
 int  get_query_value(const char *query, const char *key, char *out, size_t out_size);
@@ -408,10 +411,18 @@ void handle_client(int client_fd) {
 
     close(client_fd);
 }
+
 // ------------------- main -------------------
-int main(void) {
+int main(int argc, char *argv[]) {
     // stdout 버퍼 비움 (printf가 바로바로 찍히게)
     setvbuf(stdout, NULL, _IONBF, 0);
+
+    // BASE_DIR을 아규먼트로 받기
+    if (argc > 1) {
+        BASE_DIR = argv[1];
+    } else {
+        BASE_DIR = DEFAULT_BASE_DIR;  // 기본 경로 사용
+    }
 
     // 서버 소켓 생성
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
